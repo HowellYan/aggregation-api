@@ -21,4 +21,10 @@ public class DocFetchController {
         docFetchService.getDocFetchByDocID();
         return "ok";
     }
+
+    @RequestMapping(value = "/getOpenAPI", method = RequestMethod.GET)
+    public String getOpenAPI() {
+        return docFetchService.getOpenAPI();
+    }
+
 }

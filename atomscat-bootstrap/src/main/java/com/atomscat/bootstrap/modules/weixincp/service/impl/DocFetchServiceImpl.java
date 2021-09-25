@@ -4,6 +4,7 @@ import com.atomscat.bootstrap.modules.weixincp.dao.mapper.DocFetchMapper;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocFetch;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocId;
 import com.atomscat.bootstrap.modules.weixincp.service.DocFetchService;
+import com.atomscat.bootstrap.modules.weixincp.service.OpenAPIService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
@@ -14,17 +15,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
 public class DocFetchServiceImpl implements DocFetchService {
 
-    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-
     @Autowired
     private DocFetchMapper docFetchMapper;
+
+    @Autowired
+    private OpenAPIService openAPIService;
 
     @Async
     @Override
@@ -39,6 +43,12 @@ public class DocFetchServiceImpl implements DocFetchService {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public String getOpenAPI() {
+        QueryWrapper queryWrapper = new QueryWrapper();
+        return openAPIService.build(docFetchMapper.selectList(queryWrapper));
     }
 
     public void getJson(String url, String id) throws Exception {
@@ -69,5 +79,7 @@ public class DocFetchServiceImpl implements DocFetchService {
             e.printStackTrace();
         }
     }
+
+
 
 }
