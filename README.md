@@ -9,6 +9,8 @@
 ```
 ![Image text](readme/20210612000635.png)
 
+### 修改数据源
+![Image text](readme/1632592483.png)
 
 #### swagger-ui 地址
 ```
@@ -27,7 +29,5 @@ http://127.0.0.1:8899/api/weixin/cp/getDocFetch
 
 # 生成openapi文档接口
 http://127.0.0.1:8899/api/weixin/cp/getOpenAPI
-
-
 
 ```

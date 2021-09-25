@@ -13,9 +13,11 @@ spring:
     active: dev
   # 数据源
   datasource:
+    # 数据库地址，数据库名称：weixin
     url: jdbc:mysql://192.168.10.113:3306/weixin?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    # 数据库用户
     username: root
-    # Jasypt加密 可到common-utils中找到JasyptUtil加解密工具类生成加密结果 格式为ENC(加密结果) 以下解密结果为123456
+    #  数据库密码
     password: Aa123456@zx
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.jdbc.Driver
