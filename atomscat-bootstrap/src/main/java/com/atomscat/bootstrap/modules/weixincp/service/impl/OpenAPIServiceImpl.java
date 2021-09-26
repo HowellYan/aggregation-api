@@ -1,7 +1,10 @@
 package com.atomscat.bootstrap.modules.weixincp.service.impl;
 
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.atomscat.bootstrap.modules.weixincp.entity.ApiParam;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocFetch;
@@ -26,7 +29,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -36,7 +41,7 @@ import java.util.*;
 @Service
 public class OpenAPIServiceImpl implements OpenAPIService {
 
-    private final static String WEIXIN_CP_BASE_URL="https://qyapi.weixin.qq.com";
+    private final static String WEIXIN_CP_BASE_URL = "https://qyapi.weixin.qq.com";
 
     @Override
     public String build(List<DocFetch> docFetchList) {
@@ -75,8 +80,11 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         Operation operation = new Operation();
         // 必须字段数组
         List<String> required = new ArrayList<>();
+
         // 配置 tags
-        operation.setTags(getTags(apiUrl, tagList));
+        // operation.setTags(getTags(apiUrl, tagList));
+        // 配置 tags
+        operation.setTags(getTagsByJson(docFetch.getDocId(), tagList));
         // 标题
         operation.setSummary(document.getString("title"));
         // 请求响应 demo
@@ -103,6 +111,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     /**
      * 获取 url 路径参数
+     *
      * @param apiUrl
      * @param mapReq
      * @return
@@ -126,6 +135,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     /**
      * 获取 body 请求参数
+     *
      * @param apiParamDemo
      * @param required
      * @param mapReq
@@ -148,9 +158,18 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             if (apiReqJson != null) {
                 for (Map.Entry<String, Object> stringSet : apiReqJson.entrySet()) {
                     Schema propertiesItem = getObjectType(stringSet.getValue());
-                    ApiParam ApiParam = mapReq.get(stringSet.getKey());
-                    if (ApiParam != null) {
-                        propertiesItem.description(ApiParam.getDescription());
+                    ApiParam apiParam = mapReq.get(stringSet.getKey());
+                    if (apiParam != null) {
+                        propertiesItem.description(apiParam.getDescription());
+                    }
+                    schema.addProperties(stringSet.getKey(), propertiesItem);
+                }
+            } else {
+                for (Map.Entry<String, ApiParam> stringSet : mapReq.entrySet()) {
+                    Schema propertiesItem = new Schema();
+                    ApiParam apiParam = mapReq.get(stringSet.getKey());
+                    if (apiParam != null) {
+                        propertiesItem.description(apiParam.getDescription());
                     }
                     schema.addProperties(stringSet.getKey(), propertiesItem);
                 }
@@ -162,6 +181,13 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         return requestBody;
     }
 
+    /**
+     * 获取 响应 参数
+     *
+     * @param apiParamDemo
+     * @param mapResp
+     * @return
+     */
     private ApiResponses getResponses(ApiParamDemo apiParamDemo, Map<String, ApiParam> mapResp) {
         ApiResponses responses = new ApiResponses();
         if (apiParamDemo != null && StrUtil.isNotBlank(apiParamDemo.getApiResp())) {
@@ -169,21 +195,30 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             String apiResp = apiParamDemo.getApiResp();
             JSONObject apiRespJson = null;
             try {
-                apiRespJson = JSONObject.parseObject(apiResp.replace("\"\"","\",\"")
-                        .replaceAll("，",",")
-                        .replaceAll(":xxx,",":\"xxx\",")
-                        .replaceAll("}",":\"xxx\",")
-                        .replaceAll("　　","")
+                apiRespJson = JSONObject.parseObject(apiResp.replace("\"\"", "\",\"")
+                        .replaceAll("，", ",")
+                        .replaceAll(":xxx,", ":\"xxx\",")
+                        .replaceAll("}", ":\"xxx\",")
+                        .replaceAll("　　", "")
                 );
-            } catch (Exception e){
+            } catch (Exception e) {
                 log.error("apiResp: {}", apiResp);
             }
             if (apiRespJson != null) {
                 for (Map.Entry<String, Object> stringSet : apiRespJson.entrySet()) {
                     Schema propertiesItem = getObjectType(stringSet.getValue());
-                    ApiParam ApiParam = mapResp.get(stringSet.getKey());
-                    if (ApiParam != null) {
-                        propertiesItem.description(ApiParam.getDescription());
+                    ApiParam apiParam = mapResp.get(stringSet.getKey());
+                    if (apiParam != null) {
+                        propertiesItem.description(apiParam.getDescription());
+                    }
+                    schema.addProperties(stringSet.getKey(), propertiesItem);
+                }
+            } else {
+                for (Map.Entry<String, ApiParam> stringSet : mapResp.entrySet()) {
+                    Schema propertiesItem = new Schema();
+                    ApiParam apiParam = mapResp.get(stringSet.getKey());
+                    if (apiParam != null) {
+                        propertiesItem.description(apiParam.getDescription());
                     }
                     schema.addProperties(stringSet.getKey(), propertiesItem);
                 }
@@ -197,6 +232,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     /**
      * 获取类型
+     *
      * @param obj
      * @return
      */
@@ -218,6 +254,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     /**
      * 获取请求字段说明
+     *
      * @return
      */
     private Map<String, ApiParam> getReqParamDoc(Document doc, List<String> required) {
@@ -250,6 +287,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     /**
      * 获取响应字段说明
+     *
      * @param doc
      * @return
      */
@@ -280,12 +318,13 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     /**
      * 获取tags
+     *
      * @param apiUrl
      * @param tagList
      * @return
      */
-    private List<String> getTags(String apiUrl, List<Tag> tagList){
-        String tagStr = apiUrl.replace("https://qyapi.weixin.qq.com", "");
+    private List<String> getTags(String apiUrl, List<Tag> tagList) {
+        String tagStr = apiUrl.replace(WEIXIN_CP_BASE_URL, "");
         tagStr = tagStr.substring(0, tagStr.lastIndexOf("/"));
         // 全局
         Tag tag = new Tag();
@@ -338,6 +377,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     /**
      * 获取请求包体、返回结果，demo
+     *
      * @param doc
      * @return
      */
@@ -356,6 +396,78 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             }
         }
         return apiParamDemo;
+    }
+
+    public List<String> getTagsByJson(String docId, List<Tag> tagList) {
+        try {
+            File jsonFile = ResourceUtils.getFile("classpath:catagories.json");
+            String json = FileUtil.readUtf8String(jsonFile);
+            JSONObject jsonObject = JSON.parseObject(json);
+            List<String> tags = new ArrayList<>();
+            getNextNode(jsonObject, docId, tags);
+            log.info("tag: {}, {}", docId, JSON.toJSON(tags));
+            for (String tagName : tags) {
+                Tag tag = new Tag();
+                tag.setDescription("");
+                tag.setName(tagName);
+                tagList.add(tag);
+            }
+            return tags;
+        } catch (Exception e) {
+            log.error("tag: {}, {}", docId, e);
+        }
+        return null;
+    }
+
+    public Boolean getNextNode(JSONObject jsonObject, String docId, List<String> tags) {
+        Boolean res = false;
+        if (jsonObject == null || jsonObject.size() <= 0) {
+            return res;
+        }
+        if (jsonObject != null && jsonObject.getString("title") != null) {
+            tags.add(jsonObject.getString("title"));
+        }
+        int i = 0;
+        for (Map.Entry<String, Object> stringSet : jsonObject.entrySet()) {
+            i++;
+            if (stringSet == null || StrUtil.isBlank(stringSet.getKey()) || stringSet.getValue() == null || StrUtil.isBlank(stringSet.getValue().toString())) {
+                continue;
+            }
+            // 找到正确
+            if (stringSet.getKey().equals("doc_id") && docId.equals(stringSet.getValue().toString())) {
+                res = true;
+                break;
+            } else {
+                if (stringSet.getValue() instanceof Iterable) {
+                    JSONArray jsonArray = JSON.parseArray(stringSet.getValue().toString());
+                    if ("children".equals(stringSet.getKey())) {
+                        for (Object obj : jsonArray) {
+                            if (getNextNode(JSON.parseObject(obj.toString()), docId, tags)) {
+                                res = true;
+                                break;
+                            }
+                        }
+                    }
+                } else if (!(stringSet.getValue() instanceof String) &&
+                        !(stringSet.getValue() instanceof Number) &&
+                        !(stringSet.getValue() instanceof Boolean)
+                ) {
+                    JSONObject jsonNextObject = JSON.parseObject(stringSet.getValue().toString());
+                    if (getNextNode(jsonNextObject, docId, tags)) {
+                        res = true;
+                        break;
+                    }
+                }
+            }
+            // 最后一个
+            if (jsonObject.size() == i && !res) {
+                if (tags.size() > 0) {
+                    tags.remove(tags.size() - 1);
+                }
+            }
+        }
+
+        return res;
     }
 
     @Data

@@ -1,10 +1,11 @@
 package com.atomscat.bootstrap.modules.weixincp.service.impl;
 
-import com.atomscat.bootstrap.modules.weixincp.dao.mapper.DocFetchMapper;
+import cn.hutool.core.util.RandomUtil;
+import com.atomscat.bootstrap.modules.weixincp.dao.mapper.DocExtraMapper;
+import com.atomscat.bootstrap.modules.weixincp.entity.DocExtra;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocFetch;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocId;
-import com.atomscat.bootstrap.modules.weixincp.service.DocFetchService;
-import com.atomscat.bootstrap.modules.weixincp.service.OpenAPIService;
+import com.atomscat.bootstrap.modules.weixincp.service.DocExtraService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -19,19 +20,15 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-public class DocFetchServiceImpl implements DocFetchService {
-
+public class DocExtraServiceImpl implements DocExtraService {
     @Autowired
-    private DocFetchMapper docFetchMapper;
-
-    @Autowired
-    private OpenAPIService openAPIService;
+    private DocExtraMapper docExtraMapper;
 
     @Async
     @Override
-    public void getDocFetchByDocID() {
+    public void getDocExtraByDocID() {
         for (String id : DocId.ids) {
-            String url = "https://work.weixin.qq.com/api/docFetch/fetchCnt?id=" + id;
+            String url = "https://open.work.weixin.qq.com/api/docExtra/getExtraInfo?lang=zh_CN&ajax=1&f=json&doc_id="+ id +"&random=" + RandomUtil.randomNumbers(5);
             try {
                 getJson(url, id);
                 TimeUnit.MILLISECONDS.sleep(1000);
@@ -40,12 +37,6 @@ public class DocFetchServiceImpl implements DocFetchService {
                 e.printStackTrace();
             }
         }
-    }
-
-    @Override
-    public String getOpenAPI() {
-        QueryWrapper queryWrapper = new QueryWrapper();
-        return openAPIService.build(docFetchMapper.selectList(queryWrapper));
     }
 
     public void getJson(String url, String id) throws Exception {
@@ -61,21 +52,19 @@ public class DocFetchServiceImpl implements DocFetchService {
 
     public void save(String res, String id) {
         try {
-            QueryWrapper<DocFetch> queryWrapper = new QueryWrapper<>();
-            queryWrapper.lambda().eq(DocFetch::getDocId, id);
-            if (docFetchMapper.selectCount(queryWrapper) > 0) {
+            QueryWrapper<DocExtra> queryWrapper = new QueryWrapper<>();
+            queryWrapper.lambda().eq(DocExtra::getDocId, id);
+            if (docExtraMapper.selectCount(queryWrapper) > 0) {
                 return;
             }
-            DocFetch docFetch = new DocFetch();
-            docFetch.setDoc(res);
-            docFetch.setDocId(id);
-            docFetch.setCreateTime(new Date());
-            docFetchMapper.insert(docFetch);
+            DocExtra docExtra = new DocExtra();
+            docExtra.setDoc(res);
+            docExtra.setDocId(Long.parseLong(id));
+            docExtra.setCreateTime(new Date());
+            docExtraMapper.insert(docExtra);
         } catch (Exception e) {
             log.error("{}", e);
             e.printStackTrace();
         }
     }
-
-
 }
