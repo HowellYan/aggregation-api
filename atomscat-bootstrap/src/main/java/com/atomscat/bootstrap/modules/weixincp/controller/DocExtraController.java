@@ -1,7 +1,6 @@
 package com.atomscat.bootstrap.modules.weixincp.controller;
 
 import com.atomscat.bootstrap.modules.weixincp.service.DocExtraService;
-import com.atomscat.bootstrap.modules.weixincp.service.DocFetchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;

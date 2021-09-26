@@ -1,15 +1,16 @@
 package com.atomscat.bootstrap.modules.weixincp.service.impl;
 
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.atomscat.bootstrap.modules.weixincp.dao.mapper.DocIndexMapper;
 import com.atomscat.bootstrap.modules.weixincp.entity.ApiParam;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocFetch;
+import com.atomscat.bootstrap.modules.weixincp.entity.DocIndex;
 import com.atomscat.bootstrap.modules.weixincp.service.OpenAPIService;
 import com.atomscat.bootstrap.utils.UrlUtils;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -28,11 +29,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
-import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author th158
@@ -42,6 +43,9 @@ import java.util.*;
 public class OpenAPIServiceImpl implements OpenAPIService {
 
     private final static String WEIXIN_CP_BASE_URL = "https://qyapi.weixin.qq.com";
+
+    @Autowired
+    private DocIndexMapper docIndexMapper;
 
     @Override
     public String build(List<DocFetch> docFetchList) {
@@ -85,6 +89,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         // operation.setTags(getTags(apiUrl, tagList));
         // 配置 tags
         operation.setTags(getTagsByJson(docFetch.getDocId(), tagList));
+        //
+        if (operation.getTags() != null && operation.getTags().size() > 0) {
+            operation.addExtension("x-apifox-folder", operation.getTags().get(0));
+        }
         // 标题
         operation.setSummary(document.getString("title"));
         // 请求响应 demo
@@ -150,7 +158,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             try {
                 apiReqJson = JSONObject.parseObject(apiReq);
             } catch (Exception e) {
-                log.error("apiReqJson: {}", apiReqJson);
+                log.error("apiReqJson: {}", apiReq);
             }
             Content content = new Content();
             Schema schema = new ObjectSchema();
@@ -400,11 +408,29 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     public List<String> getTagsByJson(String docId, List<Tag> tagList) {
         try {
-            File jsonFile = ResourceUtils.getFile("classpath:catagories.json");
-            String json = FileUtil.readUtf8String(jsonFile);
-            JSONObject jsonObject = JSON.parseObject(json);
             List<String> tags = new ArrayList<>();
-            getNextNode(jsonObject, docId, tags);
+            QueryWrapper<DocIndex> queryWrapper = new QueryWrapper<>();
+            queryWrapper.lambda().eq(DocIndex::getDocId, docId);
+            List<DocIndex> docIndexList = docIndexMapper.selectList(queryWrapper);
+            if (docIndexList != null && docIndexList.size() > 0) {
+                for (DocIndex docIndex : docIndexList) {
+                    getNextNode(docIndex.getParentId(), tags, 0);
+                }
+            }
+            // 去重
+            tags = tags.stream().distinct().collect(Collectors.toList());
+            if (tags.size() > 1) {
+                String tagPath = "";
+                for (String tag : tags) {
+                    if (StrUtil.isBlank(tagPath)) {
+                        tagPath = tag;
+                    } else {
+                        tagPath = tag + "/" + tagPath;
+                    }
+                }
+                tags = new ArrayList<>();
+                tags.add(tagPath);
+            }
             log.info("tag: {}, {}", docId, JSON.toJSON(tags));
             for (String tagName : tags) {
                 Tag tag = new Tag();
@@ -419,55 +445,21 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         return null;
     }
 
-    public Boolean getNextNode(JSONObject jsonObject, String docId, List<String> tags) {
-        Boolean res = false;
-        if (jsonObject == null || jsonObject.size() <= 0) {
-            return res;
-        }
-        if (jsonObject != null && jsonObject.getString("title") != null) {
-            tags.add(jsonObject.getString("title"));
-        }
-        int i = 0;
-        for (Map.Entry<String, Object> stringSet : jsonObject.entrySet()) {
-            i++;
-            if (stringSet == null || StrUtil.isBlank(stringSet.getKey()) || stringSet.getValue() == null || StrUtil.isBlank(stringSet.getValue().toString())) {
-                continue;
-            }
-            // 找到正确
-            if (stringSet.getKey().equals("doc_id") && docId.equals(stringSet.getValue().toString())) {
-                res = true;
-                break;
-            } else {
-                if (stringSet.getValue() instanceof Iterable) {
-                    JSONArray jsonArray = JSON.parseArray(stringSet.getValue().toString());
-                    if ("children".equals(stringSet.getKey())) {
-                        for (Object obj : jsonArray) {
-                            if (getNextNode(JSON.parseObject(obj.toString()), docId, tags)) {
-                                res = true;
-                                break;
-                            }
-                        }
-                    }
-                } else if (!(stringSet.getValue() instanceof String) &&
-                        !(stringSet.getValue() instanceof Number) &&
-                        !(stringSet.getValue() instanceof Boolean)
-                ) {
-                    JSONObject jsonNextObject = JSON.parseObject(stringSet.getValue().toString());
-                    if (getNextNode(jsonNextObject, docId, tags)) {
-                        res = true;
-                        break;
-                    }
-                }
-            }
-            // 最后一个
-            if (jsonObject.size() == i && !res) {
-                if (tags.size() > 0) {
-                    tags.remove(tags.size() - 1);
+    public Boolean getNextNode(Long parentId, List<String> tags, int i) {
+        if (parentId == 0 || i >= 2) {
+            return true;
+        } else {
+            QueryWrapper<DocIndex> queryWrapper = new QueryWrapper<>();
+            queryWrapper.lambda().eq(DocIndex::getCategoryId, parentId);
+            List<DocIndex> docIndexList = docIndexMapper.selectList(queryWrapper);
+            if (docIndexList != null && docIndexList.size() > 0) {
+                for (DocIndex docIndex : docIndexList) {
+                    tags.add(docIndex.getTitle());
+                    getNextNode(docIndex.getParentId(), tags, ++i);
                 }
             }
         }
-
-        return res;
+        return false;
     }
 
     @Data
