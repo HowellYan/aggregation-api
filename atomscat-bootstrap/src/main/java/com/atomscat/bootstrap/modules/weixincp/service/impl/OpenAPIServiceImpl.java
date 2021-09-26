@@ -97,6 +97,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         operation.setSummary(document.getString("title"));
         // 请求响应 demo
         ApiParamDemo apiParamDemo = getApiParamDemo(doc);
+        if (apiParamDemo != null && docFetch != null) {
+            apiParamDemo.setApiDocId(docFetch.getDocId());
+        }
+
         // 获取请求字段说明
         Map<String, ApiParam> mapReq = getReqParamDoc(doc, required);
         // 获取 url 路径参数
@@ -156,9 +160,11 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             String apiReq = apiParamDemo.getApiReq();
             JSONObject apiReqJson = null;
             try {
+                apiReq = apiReq.replaceAll("\"\\[","\":[")
+                        .replaceAll("\"op\":1\"userid\":\"lisi\"","\"op\":1,\"userid\":\"lisi\"");
                 apiReqJson = JSONObject.parseObject(apiReq);
             } catch (Exception e) {
-                log.error("apiReqJson: {}", apiReq);
+                log.error("apiReqJson: {}, {}", apiParamDemo.getApiDocId(), apiReq);
             }
             Content content = new Content();
             Schema schema = new ObjectSchema();
@@ -183,7 +189,11 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                 }
             }
             schema.setRequired(required);
-            content.put("application/json", new MediaType().example(apiReq).schema(schema));
+            if (apiReq.contains("&lt;xml&gt;")) {
+                content.put("application/xml", new MediaType().example(apiReq).schema(schema));
+            } else {
+                content.put("application/json", new MediaType().example(apiReq).schema(schema));
+            }
             requestBody.setContent(content);
         }
         return requestBody;
@@ -203,14 +213,33 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             String apiResp = apiParamDemo.getApiResp();
             JSONObject apiRespJson = null;
             try {
-                apiRespJson = JSONObject.parseObject(apiResp.replace("\"\"", "\",\"")
+                apiResp = apiResp
+                        .replaceAll("｛", "{")
+                        .replaceAll("｝","}")
                         .replaceAll("，", ",")
-                        .replaceAll(":xxx,", ":\"xxx\",")
-                        .replaceAll("}", ":\"xxx\",")
-                        .replaceAll("　　", "")
-                );
+                        .replaceAll("\"\"","\",\"")
+                        .replaceAll("\"\\[","\":[")
+                        .replace("\"size\":xxx,\"md5\"","\"size\":\"xxx\",\"md5\"")
+                        .replace("\"：\"","\":\"")
+                        .replace("\"tags\":[{\"group_name\":\"标签分组名称\",\"tag_name\":\"标签名称\",\"type\":1},\"remark_corp_name\":\"腾讯科技\",\"remark_mobiles\":[10000000003,10000000004]]}",
+                                "\"tags\":[{\"group_name\":\"标签分组名称\",\"tag_name\":\"标签名称\",\"type\":1}],\"remark_corp_name\":\"腾讯科技\",\"remark_mobiles\":[10000000003,10000000004]}")
+                        .replace("report_to\":{\"userids\":[\"userid1\",\"userid2\"]}\"report_type\":1",
+                                "report_to\":{\"userids\":[\"userid1\",\"userid2\"]},\"report_type\":1")
+                        .replace(",\"comment_num\"110,\"open_replay\":1,", ",\"comment_num\":110,\"open_replay\":1,")
+                        .replace("\"pending\":10\"total_case\":1,","\"pending\":10,\"total_case\":1,")
+                        .replace("\"total_accepted\":1,\"total_solved\":1,}","\"total_accepted\":1,\"total_solved\":1}")
+                ;
+                apiRespJson = JSONObject.parseObject(apiResp);
             } catch (Exception e) {
-                log.error("apiResp: {}", apiResp);
+                try {
+                    if ("syntax error, EOF".equals(e.getMessage())) {
+                        apiResp = apiResp + "}";
+                        apiRespJson = JSONObject.parseObject(apiResp);
+                    }
+                } catch (Exception ex) {
+                    log.error("apiResp: ", ex);
+                }
+                log.error("apiResp: {}, {}", apiParamDemo.getApiDocId(), apiResp, e);
             }
             if (apiRespJson != null) {
                 for (Map.Entry<String, Object> stringSet : apiRespJson.entrySet()) {
@@ -272,6 +301,8 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         for (Element element : doc.getElementsByTag("thead")) {
             if (element.getElementsByTag("th").size() == 3) {
                 tableElement = element.parent();
+            } else if (doc.html().contains("&lt;xml&gt;")) {
+                tableElement = element.parent();
             }
         }
         if (tableElement != null) {
@@ -286,6 +317,11 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                         required.add(ApiParam.getName());
                     }
                     ApiParam.setDescription(tds.get(2).text().trim());
+                    mapReq.put(ApiParam.getName(), ApiParam);
+                } else if (doc.html().contains("&lt;xml&gt;")) {
+                    ApiParam ApiParam = new ApiParam();
+                    ApiParam.setName(tds.get(0).text().trim());
+                    ApiParam.setDescription(tds.get(1).text().trim());
                     mapReq.put(ApiParam.getName(), ApiParam);
                 }
             }
@@ -397,10 +433,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             }
             if (element.parent().previousElementSibling().text().contains("请求包体：")) {
                 //请求包体
-                apiParamDemo.setApiReq(element.html().replaceAll("[\\s\\t\\n\\r]", "").replace("\\n", "").replaceAll("\",}", "\"}"));
+                apiParamDemo.setApiReq(element.html().replaceAll("[\\s\\t\\n\\r]", "").replace("\\n", "").replaceAll("\",}", "\"}").trim());
             } else if (element.parent().previousElementSibling().text().contains("返回结果：")) {
                 //返回结果
-                apiParamDemo.setApiResp(element.html().replaceAll("[\\s\\t\\n\\r]", "").replace("\\n", "").replaceAll("\",}", "\"}"));
+                apiParamDemo.setApiResp(element.html().replaceAll("[\\s\\t\\n\\r]", "").replace("\\n", "").replaceAll("\",}", "\"}").replaceAll("　","").trim());
             }
         }
         return apiParamDemo;
@@ -428,10 +464,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                         tagPath = tag + "/" + tagPath;
                     }
                 }
-                tags = new ArrayList<>();
+                //tags = new ArrayList<>();
                 tags.add(tagPath);
             }
-            log.info("tag: {}, {}", docId, JSON.toJSON(tags));
+            // log.info("tag: {}, {}", docId, JSON.toJSON(tags));
             for (String tagName : tags) {
                 Tag tag = new Tag();
                 tag.setDescription("");
@@ -446,6 +482,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
     }
 
     public Boolean getNextNode(Long parentId, List<String> tags, int i) {
+        // 限制目录层级： 2
         if (parentId == 0 || i >= 2) {
             return true;
         } else {
@@ -464,6 +501,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
     @Data
     class ApiParamDemo {
+        private String apiDocId = null;
         private String apiReq = null;
         private String apiResp = null;
     }
