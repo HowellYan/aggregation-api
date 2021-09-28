@@ -57,6 +57,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         }
         openAPI.setPaths(paths);
         openAPI.setInfo(new Info().title("weixin").version("1.0.0").description(""));
+        tagList = tagList.stream().distinct().collect(Collectors.toList());
         openAPI.setTags(tagList);
         log.info("OpenAPI json: ", JSONObject.toJSONString(openAPI));
         return JSONObject.toJSONString(openAPI);
@@ -75,6 +76,22 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         }
         // 获取 html 接口描述
         Document doc = Jsoup.parse(document.getString("content_html"));
+        String[] docItems = doc.html().split("<h");
+        if (docItems.length > 0) {
+            for (String docItem : docItems) {
+                try {
+                    doc = Jsoup.parse("<h" + docItem);
+                    setPaths(document, doc, docFetch, tagList, paths);
+                } catch (Exception e) {
+                    log.error("单个文档多个接口异常", e);
+                }
+            }
+        } else {
+            setPaths(document, doc, docFetch, tagList, paths);
+        }
+    }
+
+    private void setPaths(JSONObject document, Document doc, DocFetch docFetch, List<Tag> tagList, Paths paths) {
         // 请求接口地址
         String apiUrl = getApiUrl(doc);
         if (apiUrl == null) {
@@ -111,6 +128,8 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         Map<String, ApiParam> mapResp = getRespParamDoc(doc);
         // 获取 响应参数
         operation.setResponses(getResponses(apiParamDemo, mapResp));
+        // 说明
+        operation.setDescription(getDescription(doc, docFetch.getDocId()));
         PathItem path = new PathItem();
         PathItem.HttpMethod httpMethod = getHttpMethod(doc);
         if (httpMethod == null) {
@@ -118,6 +137,78 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         }
         path.operation(httpMethod, operation);
         paths.addPathItem(apiUrl.replace(WEIXIN_CP_BASE_URL, ""), path);
+    }
+
+    /**
+     * 说明
+     * @param doc
+     * @return
+     */
+    private String getDescription(Document doc, String docId) {
+        String description = "";
+        for (Element element : doc.getElementsByTag("strong")) {
+            if (element.text().trim().contains("权限说明：")) {
+                try {
+                    if (doc.getElementsByTag("h2").size() > 0 ) {
+                        description += "权限说明：" + element.nextElementSibling().text() + "\n";
+                    } else {
+                        description += "权限说明：" + element.parent().nextElementSibling().text() + "\n";
+                    }
+                } catch (Exception e) {
+                    log.error("权限说明：", e);
+                }
+            } else if (element.text().trim().contains("更多说明：")) {
+                try {
+                    description += "更多说明：" + element.parent().nextElementSibling().text()+ "\n";
+                } catch (Exception e) {
+                    log.error("更多说明：", e);
+                }
+            }
+        }
+        description += "\n" + getDocUrl(docId);
+        return description;
+    }
+
+    /**
+     * 接口文档地址
+     * @param docId
+     * @return
+     */
+    private String getDocUrl(String docId) {
+        QueryWrapper<DocIndex> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda().eq(DocIndex::getDocId, docId);
+        List<DocIndex> docIndexList = docIndexMapper.selectList(queryWrapper);
+        String docUrl = "文档ID: " + docId;
+        docUrl = docUrl + "\n 原文档地址：\n";
+        for (DocIndex docIndex : docIndexList) {
+            docUrl += "https://open.work.weixin.qq.com/api/doc/" + getDocUrlNode(docIndex.getParentId(),  "" + docIndex.getCategoryId(), 0) + "\n";
+        }
+        return docUrl;
+    }
+
+    /**
+     *
+     * @param parentId
+     * @param node
+     * @param i
+     * @return
+     */
+    private String getDocUrlNode(Long parentId, String node, int i) {
+        if (parentId == 0) {
+            return node;
+        } else {
+            QueryWrapper<DocIndex> queryWrapper = new QueryWrapper<>();
+            queryWrapper.lambda().eq(DocIndex::getCategoryId, parentId);
+            List<DocIndex> docIndexList = docIndexMapper.selectList(queryWrapper);
+            if (docIndexList != null && docIndexList.size() > 0) {
+                DocIndex docIndex = docIndexList.get(0);
+                if (i > 0 && docIndex.getParentId() != 0) {
+                    node = docIndex.getParentId() + "/" + node;
+                }
+                return getDocUrlNode(docIndex.getParentId(), node, ++i);
+            }
+        }
+        return node;
     }
 
 
@@ -228,6 +319,8 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                         .replace(",\"comment_num\"110,\"open_replay\":1,", ",\"comment_num\":110,\"open_replay\":1,")
                         .replace("\"pending\":10\"total_case\":1,","\"pending\":10,\"total_case\":1,")
                         .replace("\"total_accepted\":1,\"total_solved\":1,}","\"total_accepted\":1,\"total_solved\":1}")
+                        .replace(",\"bind_status\"0,",",\"bind_status\":0,")
+                        .replace("\"order\":100\"fixed_group\":true,\"is_close\":false\"type\":1,","\"order\":100,\"fixed_group\":true,\"is_close\":false,\"type\":1,")
                 ;
                 apiRespJson = JSONObject.parseObject(apiResp);
             } catch (Exception e) {
@@ -415,6 +508,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                 apiUrl = element.text().substring(element.text().indexOf("请求地址：") + 5);
             }
         }
+        if (apiUrl != null) {
+            // ACCESS_TOKEN to {{accesstoken}}
+            apiUrl = apiUrl.replace("access_token=ACCESS_TOKEN","access_token={{accesstoken}}");
+        }
         return apiUrl;
     }
 
@@ -431,10 +528,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             if (element.parent() == null || element.parent().previousElementSibling() == null) {
                 return null;
             }
-            if (element.parent().previousElementSibling().text().contains("请求包体：")) {
+            if (element.parent().previousElementSibling().text().contains("请求包体") || element.parent().previousElementSibling().text().contains("请求示例")) {
                 //请求包体
                 apiParamDemo.setApiReq(element.html().replaceAll("[\\s\\t\\n\\r]", "").replace("\\n", "").replaceAll("\",}", "\"}").trim());
-            } else if (element.parent().previousElementSibling().text().contains("返回结果：")) {
+            } else if (element.parent().previousElementSibling().text().contains("返回结果")) {
                 //返回结果
                 apiParamDemo.setApiResp(element.html().replaceAll("[\\s\\t\\n\\r]", "").replace("\\n", "").replaceAll("\",}", "\"}").replaceAll("　","").trim());
             }
@@ -455,6 +552,12 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             }
             // 去重
             tags = tags.stream().distinct().collect(Collectors.toList());
+            for (String tagName : tags) {
+                Tag tag = new Tag();
+                tag.setDescription("");
+                tag.setName(tagName);
+                tagList.add(tag);
+            }
             if (tags.size() > 1) {
                 String tagPath = "";
                 for (String tag : tags) {
@@ -464,14 +567,11 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                         tagPath = tag + "/" + tagPath;
                     }
                 }
-                //tags = new ArrayList<>();
+                // tags = new ArrayList<>();
                 tags.add(tagPath);
-            }
-            // log.info("tag: {}, {}", docId, JSON.toJSON(tags));
-            for (String tagName : tags) {
                 Tag tag = new Tag();
                 tag.setDescription("");
-                tag.setName(tagName);
+                tag.setName(tagPath);
                 tagList.add(tag);
             }
             return tags;
