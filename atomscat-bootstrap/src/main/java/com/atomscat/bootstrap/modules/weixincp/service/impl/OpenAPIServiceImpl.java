@@ -1,6 +1,7 @@
 package com.atomscat.bootstrap.modules.weixincp.service.impl;
 
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -52,9 +53,20 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         OpenAPI openAPI = new OpenAPI();
         List<Tag> tagList = new ArrayList<>();
         Paths paths = new Paths();
+        // 独立处理
+        String[] strings = {};
         for (DocFetch docFetch : docFetchList) {
-            setOne(docFetch, tagList, paths);
+            if (strings.length > 0) {
+                for (String id : strings) {
+                    if (id.equals(docFetch.getDocId())) {
+                        setOne(docFetch, tagList, paths);
+                    }
+                }
+            } else {
+                setOne(docFetch, tagList, paths);
+            }
         }
+        // setOne(docFetch, tagList, paths);
         openAPI.setPaths(paths);
         openAPI.setInfo(new Info().title("weixin").version("1.0.0").description(""));
         tagList = tagList.stream().distinct().collect(Collectors.toList());
@@ -136,7 +148,12 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             return;
         }
         path.operation(httpMethod, operation);
-        paths.addPathItem(apiUrl.replace(WEIXIN_CP_BASE_URL, ""), path);
+
+        if (paths.get(apiUrl.replace(WEIXIN_CP_BASE_URL, "")) == null) {
+            paths.addPathItem(apiUrl.replace(WEIXIN_CP_BASE_URL, ""), path);
+        } else {
+            paths.addPathItem(apiUrl.replace(WEIXIN_CP_BASE_URL, "") + "&random=" + RandomUtil.randomNumbers(5), path);
+        }
     }
 
     /**
@@ -477,21 +494,21 @@ public class OpenAPIServiceImpl implements OpenAPIService {
     private PathItem.HttpMethod getHttpMethod(Document doc) {
         PathItem.HttpMethod method = null;
         for (Element element : doc.getElementsByTag("p")) {
-            if (element.text().contains("请求方式：PUT")) {
+            if (element.text().contains("PUT")) {
                 method = PathItem.HttpMethod.PUT;
-            } else if (element.text().contains("请求方式：GET")) {
+            } else if (element.text().contains("GET")) {
                 method = PathItem.HttpMethod.GET;
-            } else if (element.text().contains("请求方式：HEAD")) {
+            } else if (element.text().contains("HEAD")) {
                 method = PathItem.HttpMethod.HEAD;
-            } else if (element.text().contains("请求方式：POST")) {
+            } else if (element.text().contains("POST")) {
                 method = PathItem.HttpMethod.POST;
-            } else if (element.text().contains("请求方式：DELETE")) {
+            } else if (element.text().contains("DELETE")) {
                 method = PathItem.HttpMethod.DELETE;
-            } else if (element.text().contains("请求方式：PATCH")) {
+            } else if (element.text().contains("PATCH")) {
                 method = PathItem.HttpMethod.PATCH;
-            } else if (element.text().contains("请求方式：OPTIONS")) {
+            } else if (element.text().contains("OPTIONS")) {
                 method = PathItem.HttpMethod.OPTIONS;
-            } else if (element.text().contains("请求方式：PUT")) {
+            } else if (element.text().contains("PUT")) {
                 method = PathItem.HttpMethod.PUT;
             }
         }
@@ -509,8 +526,15 @@ public class OpenAPIServiceImpl implements OpenAPIService {
             }
         }
         if (apiUrl != null) {
+            String[] strings = apiUrl.split(" ");
+            for (String s : strings) {
+                if (s.contains("http:") || s.contains("https:")) {
+                    apiUrl = s;
+                }
+            }
             // ACCESS_TOKEN to {{accesstoken}}
             apiUrl = apiUrl.replace("access_token=ACCESS_TOKEN","access_token={{accesstoken}}");
+
         }
         return apiUrl;
     }
