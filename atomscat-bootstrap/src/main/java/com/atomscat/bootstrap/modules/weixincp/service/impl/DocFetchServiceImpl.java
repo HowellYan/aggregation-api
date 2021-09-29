@@ -48,6 +48,14 @@ public class DocFetchServiceImpl implements DocFetchService {
         return openAPIService.build(docFetchMapper.selectList(queryWrapper));
     }
 
+    @Override
+    public void update(Long id, Integer result) {
+        DocFetch docFetch = new DocFetch();
+        docFetch.setId(id);
+        docFetch.setResult(result);
+        docFetchMapper.updateById(docFetch);
+    }
+
     public void getJson(String url, String id) throws Exception {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(url).build();

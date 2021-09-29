@@ -34,4 +34,8 @@ public class DocFetch implements Serializable {
     @ApiModelProperty(value = "创建时间")
     private Date createTime;
 
+    /**
+     * 1: 成功
+     */
+    private Integer result;
 }

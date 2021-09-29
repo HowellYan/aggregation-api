@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.atomscat.bootstrap.modules.weixincp.dao.mapper.DocFetchMapper;
 import com.atomscat.bootstrap.modules.weixincp.dao.mapper.DocIndexMapper;
 import com.atomscat.bootstrap.modules.weixincp.entity.ApiParam;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocFetch;
@@ -50,6 +51,9 @@ public class OpenAPIServiceImpl implements OpenAPIService {
     @Autowired
     private DocIndexMapper docIndexMapper;
 
+    @Autowired
+    private DocFetchMapper docFetchMapper;
+
     @Override
     public String build(List<DocFetch> docFetchList) {
         OpenAPI openAPI = new OpenAPI();
@@ -58,6 +62,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         // 独立处理
         String[] strings = {};
         for (DocFetch docFetch : docFetchList) {
+            update(docFetch.getId(), 0);
             if (strings.length > 0) {
                 for (String id : strings) {
                     if (id.equals(docFetch.getDocId())) {
@@ -76,6 +81,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         log.info("OpenAPI json: ", JSONObject.toJSONString(openAPI));
         return JSONObject.toJSONString(openAPI);
     }
+
 
 
     private void setOne(DocFetch docFetch, List<Tag> tagList, Paths paths) {
@@ -153,8 +159,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
 
         if (paths.get(apiUrl.replace(WEIXIN_CP_BASE_URL, "")) == null) {
             paths.addPathItem(apiUrl.replace(WEIXIN_CP_BASE_URL, ""), path);
+            update(docFetch.getId(), 1);
         } else {
             paths.addPathItem(apiUrl.replace(WEIXIN_CP_BASE_URL, "") + "&random=" + RandomUtil.randomNumbers(5), path);
+            update(docFetch.getId(), 1);
         }
     }
 
@@ -275,7 +283,8 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                         .replaceAll("\"op\":1\"userid\":\"lisi\"", "\"op\":1,\"userid\":\"lisi\"")
                         .replace("[PartyID1,PartyID2]","[\"PartyID1\",\"PartyID2\"]")
                         .replace("[TagID1,TagID2]","[\"TagID1\",\"TagID2\"]")
-
+                        .replace("{\"agentids\":[1,2,3]\"parent_visible\":true}","{\"agentids\":[1,2,3],\"parent_visible\":true}")
+                        .replace("\"sort_type\":SORT_TYPE,\"start\":START,\"limit\":LIMIT}", "\"sort_type\":\"SORT_TYPE\",\"start\":\"START\",\"limit\":\"LIMIT\"}")
                 ;
                 apiReqJson = JSONObject.parseObject(apiReq);
             } catch (Exception e) {
@@ -295,10 +304,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                     }
                     // 子字段是数组
                     if (propertiesItem instanceof ArraySchema) {
-                        ((ArraySchema) propertiesItem).setItems(getItems(stringSet.getValue()));
+                        ((ArraySchema) propertiesItem).setItems(getItems(stringSet.getValue(), mapReq));
                     } else if (propertiesItem instanceof ObjectSchema) {
                         // 子字段是对象
-                        propertiesItem.properties(getProperties(stringSet.getValue()));
+                        propertiesItem.properties(getProperties(stringSet.getValue(), mapReq));
                     }
                     // 添加字段到模式
                     schema.addProperties(stringSet.getKey(), propertiesItem);
@@ -329,14 +338,14 @@ public class OpenAPIServiceImpl implements OpenAPIService {
      * @param v
      * @return
      */
-    public Schema<?> getItems(Object v) {
+    public Schema<?> getItems(Object v,  Map<String, ApiParam> descriptionMap) {
         Schema<?> schema = new ObjectSchema();
         try {
             JSONArray jsonArray = JSON.parseArray(v.toString());
             for (Object o : jsonArray) {
                 schema = getObjectType(o);
                 if (schema instanceof ObjectSchema) {
-                    schema.properties(getProperties(o));
+                    schema.properties(getProperties(o, descriptionMap));
                 }
             }
         } catch (Exception e) {
@@ -349,17 +358,22 @@ public class OpenAPIServiceImpl implements OpenAPIService {
      *
      * @return
      */
-    public Map<String, Schema> getProperties(Object o) {
+    public Map<String, Schema> getProperties(Object o, Map<String, ApiParam> descriptionMap) {
         Map<String, Schema> map = new HashMap<>();
         try {
             JSONObject jsonObject = JSON.parseObject(o.toString());
             for (Map.Entry<String, Object> stringSet : jsonObject.entrySet()) {
                 // 判断字段类型
                 Schema propertiesItem = getObjectType(stringSet.getValue());
+                // 获取字段说明
+                ApiParam apiParam = descriptionMap.get(stringSet.getKey());
+                if (apiParam != null) {
+                    propertiesItem.description(apiParam.getDescription());
+                }
                 if (propertiesItem instanceof ArraySchema) {
-                    ((ArraySchema) propertiesItem).setItems(getItems(stringSet.getValue()));
+                    ((ArraySchema) propertiesItem).setItems(getItems(stringSet.getValue(), descriptionMap));
                 } else if (propertiesItem instanceof ObjectSchema) {
-                    propertiesItem.properties(getProperties(stringSet.getValue()));
+                    propertiesItem.properties(getProperties(stringSet.getValue(), descriptionMap));
                 }
                 // 添加字段到模式
                 map.put(stringSet.getKey(), propertiesItem);
@@ -425,10 +439,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                     }
                     // 子字段是数组
                     if (propertiesItem instanceof ArraySchema) {
-                        ((ArraySchema) propertiesItem).setItems(getItems(stringSet.getValue()));
+                        ((ArraySchema) propertiesItem).setItems(getItems(stringSet.getValue(), mapResp));
                     } else if (propertiesItem instanceof ObjectSchema) {
                         // 子字段是对象
-                        propertiesItem.properties(getProperties(stringSet.getValue()));
+                        propertiesItem.properties(getProperties(stringSet.getValue(), mapResp));
                     }
                     // 添加字段到模式
                     schema.addProperties(stringSet.getKey(), propertiesItem);
@@ -718,4 +732,10 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         private String apiResp = null;
     }
 
+    public void update(Long id, Integer result) {
+        DocFetch docFetch = new DocFetch();
+        docFetch.setId(id);
+        docFetch.setResult(result);
+        docFetchMapper.updateById(docFetch);
+    }
 }
