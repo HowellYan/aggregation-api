@@ -46,5 +46,13 @@ public class DocMeta implements Serializable {
 
     private String docType;
 
+    /**
+     *
+     */
     private String html;
+
+    /**
+     * 1: 成功
+     */
+    private Integer result;
 }

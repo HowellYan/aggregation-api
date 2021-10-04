@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : 192.168.10.113
+ Source Server         : 192.168.152.130
  Source Server Type    : MySQL
  Source Server Version : 50735
- Source Host           : 192.168.10.113:3306
+ Source Host           : 192.168.152.130:3306
  Source Schema         : weixin
 
  Target Server Type    : MySQL
  Target Server Version : 50735
  File Encoding         : 65001
 
- Date: 29/09/2021 09:26:52
+ Date: 04/10/2021 22:43:32
 */
 
 SET NAMES utf8mb4;
@@ -25,9 +25,9 @@ CREATE TABLE `doc_extra`  (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `doc_id` bigint(20) NULL DEFAULT NULL,
   `doc` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `create_time` datetime(0) NULL DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 729 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 729 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '企业微信' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of doc_extra
