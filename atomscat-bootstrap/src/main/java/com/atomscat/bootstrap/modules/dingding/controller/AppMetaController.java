@@ -1,6 +1,7 @@
 package com.atomscat.bootstrap.modules.dingding.controller;
 
 import com.atomscat.bootstrap.modules.dingding.service.DocMetaService;
+import com.atomscat.bootstrap.modules.dingding.service.DocService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,9 @@ public class AppMetaController {
 
     @Autowired
     private DocMetaService docMetaService;
+
+    @Autowired
+    private DocService docService;
 
     @RequestMapping(value = "/getAppMeta", method = RequestMethod.GET)
     public String getAppMeta() {
@@ -37,5 +41,9 @@ public class AppMetaController {
         return "ok";
     }
 
+    @RequestMapping(value = "/getApi", method = RequestMethod.GET)
+    public String getApi() {
+        return docService.getDataHtml();
+    }
 
 }

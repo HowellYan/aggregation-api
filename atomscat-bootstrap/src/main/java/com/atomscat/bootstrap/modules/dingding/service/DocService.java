@@ -6,5 +6,5 @@ package com.atomscat.bootstrap.modules.dingding.service;
  */
 public interface DocService {
 
-    void getDataHtml();
+    String getDataHtml();
 }
