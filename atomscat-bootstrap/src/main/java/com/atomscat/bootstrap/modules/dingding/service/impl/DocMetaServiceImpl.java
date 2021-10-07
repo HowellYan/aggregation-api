@@ -108,6 +108,11 @@ public class DocMetaServiceImpl implements DocMetaService {
         }
     }
 
+    /**
+     * 保存到数据库
+     * @param jsonObject
+     * @param docType
+     */
     public void save(JSONObject jsonObject, String docType) {
         try {
             DocMeta docMeta = jsonObject.toJavaObject(DocMeta.class);
@@ -124,6 +129,9 @@ public class DocMetaServiceImpl implements DocMetaService {
         }
     }
 
+    /**
+     * 循环获取接口
+     */
     @Override
     public void getHtml() {
         QueryWrapper<DocMeta> queryWrapper = new QueryWrapper<>();
@@ -138,6 +146,10 @@ public class DocMetaServiceImpl implements DocMetaService {
         }
     }
 
+    /**
+     * 获取运程的html
+     * @param docMeta
+     */
     private void getHtmlResp(DocMeta docMeta) {
         try {
             String url = "https://icms-document.oss-cn-beijing.aliyuncs.com" + "" +
