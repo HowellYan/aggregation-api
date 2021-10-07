@@ -4,6 +4,8 @@ import com.atomscat.bootstrap.modules.dingding.dao.mapper.DocMetaMapper;
 import com.atomscat.bootstrap.modules.dingding.entity.DocMeta;
 import com.atomscat.bootstrap.modules.dingding.service.DocService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,15 +30,19 @@ public class DocServiceImpl implements DocService {
         List<DocMeta> list = docMetaMapper.selectList(queryWrapper);
         for (DocMeta docMeta : list) {
             if (ids.length <= 0) {
-                docMeta.getHtml();
+                getApi(docMeta.getHtml());
             } else {
                 if (Arrays.stream(ids).anyMatch(item->docMeta.getId().equals(item))) {
-                    docMeta.getHtml();
+                    getApi(docMeta.getHtml());
                 }
             }
         }
     }
 
+    public void getApi(String html) {
+        Document doc = Jsoup.parse(html);
+
+    }
 
 
 
