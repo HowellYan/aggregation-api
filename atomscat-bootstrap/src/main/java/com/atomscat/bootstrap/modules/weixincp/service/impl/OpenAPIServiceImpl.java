@@ -60,7 +60,7 @@ public class OpenAPIServiceImpl implements OpenAPIService {
         List<Tag> tagList = new ArrayList<>();
         Paths paths = new Paths();
         // 独立处理
-        String[] strings = {};
+        String[] strings = {"34656"};
         for (DocFetch docFetch : docFetchList) {
             update(docFetch.getId(), 0);
             if (strings.length > 0) {

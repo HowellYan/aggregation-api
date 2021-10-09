@@ -27,10 +27,15 @@ public class DocFetchServiceImpl implements DocFetchService {
     @Autowired
     private OpenAPIService openAPIService;
 
+    private static String[] ids = {"34656"};
+
     @Async
     @Override
     public void getDocFetchByDocID() {
-        for (String id : DocId.ids) {
+        if (ids.length <= 0) {
+            ids = DocId.ids;
+        }
+        for (String id : ids) {
             String url = "https://work.weixin.qq.com/api/docFetch/fetchCnt?id=" + id;
             try {
                 getJson(url, id);
