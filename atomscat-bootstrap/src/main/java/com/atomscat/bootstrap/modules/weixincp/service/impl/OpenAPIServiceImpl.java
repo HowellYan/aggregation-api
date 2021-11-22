@@ -18,6 +18,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
@@ -323,10 +324,18 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                 }
             }
             schema.setRequired(required);
+            MediaType mediaType = new MediaType().example(apiReq).schema(schema);
+            Map<String , Example> exampleMap = new HashMap<>();
+            Example example = new Example();
+            example.setValue(apiReq);
+            exampleMap.put("1", example);
+            exampleMap.put("2", example);
+            exampleMap.put("3", example);
+            mediaType.setExamples(exampleMap);
             if (apiReq.contains("&lt;xml&gt;")) {
-                content.put("application/xml", new MediaType().example(apiReq).schema(schema));
+                content.put("application/xml", mediaType);
             } else {
-                content.put("application/json", new MediaType().example(apiReq).schema(schema));
+                content.put("application/json", mediaType);
             }
             requestBody.setContent(content);
         }
@@ -458,7 +467,15 @@ public class OpenAPIServiceImpl implements OpenAPIService {
                 }
             }
             Content content = new Content();
-            content.put("application/json", new MediaType().example(apiResp).schema(schema));
+            MediaType mediaType = new MediaType().example(apiResp).schema(schema);
+            Map<String, Example> exampleMap = new HashMap<>();
+
+            exampleMap.put("apiResp1", new Example().value(apiResp));
+            exampleMap.put("apiResp2", new Example().value(JSON.toJSONString(apiParamDemo)));
+            exampleMap.put("apiResp3", new Example().value(apiResp));
+
+            mediaType.setExamples(exampleMap);
+            content.put("application/json", mediaType);
             responses.addApiResponse("200", new ApiResponse().content(content));
         }
         return responses;
