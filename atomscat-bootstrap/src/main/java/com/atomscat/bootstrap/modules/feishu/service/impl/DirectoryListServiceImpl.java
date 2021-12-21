@@ -9,6 +9,7 @@ import com.atomscat.bootstrap.modules.feishu.service.DirectoryListService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.Paths;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -19,6 +20,7 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,7 +110,8 @@ public class DirectoryListServiceImpl implements DirectoryListService {
             OpenAPI openAPI = JSONObject.parseObject(json, OpenAPI.class);
             log.info("{}", openAPI.getPaths().size());
             for (String entry : openAPI.getPaths().keySet()) {
-                JSONObject.parseObject(openAPI.getPaths().get(entry).toString());
+                LinkedHashMap paths = JSONObject.parseObject(JSONObject.toJSONString(openAPI.getPaths()), LinkedHashMap.class);
+                log.info("{}", paths.get(entry).toString());
             }
         } catch (Exception e) {
             log.error("tag: {}", e);
