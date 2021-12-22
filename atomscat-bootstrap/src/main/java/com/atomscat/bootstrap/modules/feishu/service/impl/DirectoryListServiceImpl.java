@@ -127,8 +127,7 @@ public class DirectoryListServiceImpl implements DirectoryListService {
         List<DirectoryList> directoryListList = directoryListMapper.selectList(queryWrapper);
         if (directoryListList.size() == 1) {
             DirectoryList directoryList = directoryListList.get(0);
-
-            log.info("{}", directoryList.getDocumentDetail());
+            log.info("数据库: {}", directoryList.getDocumentDetail());
         }
     }
 
