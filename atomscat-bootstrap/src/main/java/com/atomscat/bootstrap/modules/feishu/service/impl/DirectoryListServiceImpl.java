@@ -9,7 +9,6 @@ import com.atomscat.bootstrap.modules.feishu.service.DirectoryListService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.Paths;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -19,11 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Howell
@@ -42,6 +38,7 @@ public class DirectoryListServiceImpl implements DirectoryListService {
 
     /**
      * 獲取全部接口文檔列表
+     *
      * @throws Exception
      */
     @Override
@@ -102,28 +99,68 @@ public class DirectoryListServiceImpl implements DirectoryListService {
         }
     }
 
+
     @Override
     public void getOpenApiByJson() {
         try {
             File jsonFile = ResourceUtils.getFile("classpath:feishu-openapi.json");
             String json = FileUtil.readUtf8String(jsonFile);
             OpenAPI openAPI = JSONObject.parseObject(json, OpenAPI.class);
-            log.info("{}", openAPI.getPaths().size());
+            // log.info("{}", openAPI.getPaths().size());
             for (String entry : openAPI.getPaths().keySet()) {
                 LinkedHashMap paths = JSONObject.parseObject(JSONObject.toJSONString(openAPI.getPaths()), LinkedHashMap.class);
-                log.info("{}", paths.get(entry).toString());
+                PathItem pathItem = JSONObject.parseObject(paths.get(entry).toString(), PathItem.class);
+                // log.info("{}, {}", entry, pathItem.toString());
+                log.info("{}", JSONObject.toJSONString(getDirectory(entry, pathItem)));
             }
         } catch (Exception e) {
             log.error("tag: {}", e);
         }
     }
 
+
+    private DirectoryList getDirectory(String entry, PathItem pathItem) {
+        QueryWrapper<DirectoryList> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lambda().like(DirectoryList::getDocumentDetail, "%" + entry + "%");
+        List<DirectoryList> directoryListList = directoryListMapper.selectList(queryWrapper);
+        if (directoryListList.size() == 1) {
+            return directoryListList.get(0);
+        } else {
+            String[] s = entry.split("\\{");
+            if (pathItem.getGet() != null) {
+                queryWrapper.lambda().like(DirectoryList::getName, "%" + pathItem.getGet().getSummary() + "%")
+                        .like(DirectoryList::getDocumentDetail, "%" + s[0] + "%")
+                ;
+            } else if (pathItem.getPost() != null) {
+                queryWrapper.lambda().like(DirectoryList::getName, "%" + pathItem.getPost().getSummary() + "%")
+                //.like(DirectoryList::getDocumentDetail, "%" + s[0] + "%")
+                ;
+            }
+            directoryListList = directoryListMapper.selectList(queryWrapper);
+            if (directoryListList.size() == 1) {
+                return directoryListList.get(0);
+            } else {
+                queryWrapper.lambda()
+                .like(DirectoryList::getDocumentDetail, "%" + s[0] + "%")
+                ;
+                directoryListList = directoryListMapper.selectList(queryWrapper);
+                if (directoryListList.size() >= 1) {
+                    return directoryListList.get(0);
+                }
+            }
+            log.info(entry);
+        }
+        DirectoryList directory = new DirectoryList();
+        return directory;
+    }
+
+
     private void getContent(String path, PathItem pathItem) {
         String name = pathItem.getSummary();
         QueryWrapper<DirectoryList> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda()
                 .like(DirectoryList::getName, "%" + name + "%")
-                        .like(DirectoryList::getDocumentDetail, "%" + path.substring(0, path.length() - 1) + "");
+                .like(DirectoryList::getDocumentDetail, "%" + path.substring(0, path.length() - 1) + "");
         List<DirectoryList> directoryListList = directoryListMapper.selectList(queryWrapper);
         if (directoryListList.size() == 1) {
             DirectoryList directoryList = directoryListList.get(0);
