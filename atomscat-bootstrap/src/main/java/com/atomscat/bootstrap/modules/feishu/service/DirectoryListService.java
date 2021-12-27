@@ -20,4 +20,9 @@ public interface DirectoryListService {
      * 從json獲取OpenApi 對象
      */
     void getOpenApiByJson();
+
+    /**
+     *
+     */
+    void getOpenApi();
 }

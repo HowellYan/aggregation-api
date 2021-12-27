@@ -89,11 +89,12 @@
             <artifactId>swagger-models</artifactId>
             <version>2.1.10</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.jetbrains/markdown -->
+        <!-- https://mvnrepository.com/artifact/org.commonmark/commonmark -->
         <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>markdown</artifactId>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
         </dependency>
+
 
     </dependencies>
 

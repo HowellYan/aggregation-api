@@ -48,5 +48,16 @@ public class DirectoryListController {
         return "ok";
     }
 
+    @RequestMapping(value = "/getOpenApi", method = RequestMethod.GET)
+    public String getOpenApi() {
+        try {
+            directoryListService.getOpenApi();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "ok";
+    }
+
+
 
 }

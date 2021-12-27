@@ -1,6 +1,7 @@
 package com.atomscat.bootstrap.modules.feishu.service.impl;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.atomscat.bootstrap.modules.feishu.dao.mapper.DirectoryListMapper;
@@ -13,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
@@ -111,42 +115,64 @@ public class DirectoryListServiceImpl implements DirectoryListService {
                 LinkedHashMap paths = JSONObject.parseObject(JSONObject.toJSONString(openAPI.getPaths()), LinkedHashMap.class);
                 PathItem pathItem = JSONObject.parseObject(paths.get(entry).toString(), PathItem.class);
                 // log.info("{}, {}", entry, pathItem.toString());
-                log.info("{}", JSONObject.toJSONString(getDirectory(entry, pathItem)));
+                DirectoryList directoryList = getDirectory(entry, pathItem);
+                // log.info("{}", JSONObject.toJSONString(directoryList));
             }
         } catch (Exception e) {
             log.error("tag: {}", e);
         }
     }
 
+    @Override
+    public void getOpenApi() {
+        QueryWrapper queryWrapper = new QueryWrapper();
+        List<DirectoryList> directoryListList = directoryListMapper.selectList(queryWrapper);
+        for (DirectoryList directoryList : directoryListList) {
+            String docStr = directoryList.getDocumentDetail();
+            JSONObject jsonObject = JSONObject.parseObject(docStr);
+            if (jsonObject != null && jsonObject.get("code") != null && 0 == jsonObject.getInteger("code")) {
+                String content = jsonObject.getJSONObject("data").getJSONObject("document").getString("content");
+                Parser parser = Parser.builder().build();
+                Node document = parser.parse(content);
+                HtmlRenderer renderer = HtmlRenderer.builder().build();
+                log.info(renderer.render(document));
+            }
+        }
+    }
+
 
     private DirectoryList getDirectory(String entry, PathItem pathItem) {
         QueryWrapper<DirectoryList> queryWrapper = new QueryWrapper<>();
-        queryWrapper.lambda().like(DirectoryList::getDocumentDetail, "%" + entry + "%");
+        queryWrapper.lambda().like(DirectoryList::getDocumentDetail, entry);
         List<DirectoryList> directoryListList = directoryListMapper.selectList(queryWrapper);
         if (directoryListList.size() == 1) {
             return directoryListList.get(0);
         } else {
-            String[] s = entry.split("\\{");
+            String[] s = entry.split("/");
             if (pathItem.getGet() != null) {
-                queryWrapper.lambda().like(DirectoryList::getName, "%" + pathItem.getGet().getSummary() + "%")
-                        .like(DirectoryList::getDocumentDetail, "%" + s[0] + "%")
-                ;
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.lambda().like(DirectoryList::getDocumentDetail, pathItem.getGet().getSummary());
             } else if (pathItem.getPost() != null) {
-                queryWrapper.lambda().like(DirectoryList::getName, "%" + pathItem.getPost().getSummary() + "%")
-                //.like(DirectoryList::getDocumentDetail, "%" + s[0] + "%")
-                ;
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.lambda().like(DirectoryList::getDocumentDetail, pathItem.getPost().getSummary());
+            } else if (pathItem.getDelete() != null) {
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.lambda().like(DirectoryList::getDocumentDetail, pathItem.getDelete().getSummary());
+            } else if (pathItem.getPut() != null) {
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.lambda().like(DirectoryList::getDocumentDetail, pathItem.getPut().getSummary());
+            } else if (pathItem.getPatch() != null) {
+                queryWrapper = new QueryWrapper<>();
+                queryWrapper.lambda().like(DirectoryList::getDocumentDetail, pathItem.getPatch().getSummary());
+            }
+            for (String item : s) {
+                if (!item.contains("{") && !item.contains("}") && !StrUtil.isBlank(item)) {
+                    queryWrapper.lambda().like(DirectoryList::getDocumentDetail, item);
+                }
             }
             directoryListList = directoryListMapper.selectList(queryWrapper);
             if (directoryListList.size() == 1) {
                 return directoryListList.get(0);
-            } else {
-                queryWrapper.lambda()
-                .like(DirectoryList::getDocumentDetail, "%" + s[0] + "%")
-                ;
-                directoryListList = directoryListMapper.selectList(queryWrapper);
-                if (directoryListList.size() >= 1) {
-                    return directoryListList.get(0);
-                }
             }
             log.info(entry);
         }
@@ -158,9 +184,7 @@ public class DirectoryListServiceImpl implements DirectoryListService {
     private void getContent(String path, PathItem pathItem) {
         String name = pathItem.getSummary();
         QueryWrapper<DirectoryList> queryWrapper = new QueryWrapper<>();
-        queryWrapper.lambda()
-                .like(DirectoryList::getName, "%" + name + "%")
-                .like(DirectoryList::getDocumentDetail, "%" + path.substring(0, path.length() - 1) + "");
+        queryWrapper.lambda().like(DirectoryList::getName, "%" + name + "%").like(DirectoryList::getDocumentDetail, "%" + path.substring(0, path.length() - 1) + "");
         List<DirectoryList> directoryListList = directoryListMapper.selectList(queryWrapper);
         if (directoryListList.size() == 1) {
             DirectoryList directoryList = directoryListList.get(0);
