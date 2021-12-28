@@ -136,6 +136,8 @@ public class DirectoryListServiceImpl implements DirectoryListService {
                 Node document = parser.parse(content);
                 HtmlRenderer renderer = HtmlRenderer.builder().build();
                 log.info(renderer.render(document));
+            } else {
+                log.error("{}", JSONObject.toJSONString(directoryList));
             }
         }
     }

@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html>
+<title>API Document</title>
+
+<xmp theme="united" style="display:none;">
+#Swagger Maven Plugin Sample
+
+
+## HTTP | HTTPS://petstore.swagger.wordnik.com/api
+
+
+This is a sample for swagger-maven-plugin
+
+
+[**Contact the developer**](mailto:kongchen@gmail.com)
+
+
+**Version** v1
+
+[**Terms of Service**](http://www.github.com/kongchen/swagger-maven-plugin)
+
+[**Apache 2.0**](http://www.apache.org/licenses/LICENSE-2.0.html)
+
+
+
+
+
+
+
+
+
+
+# APIs
+
+
+## /index/getUserEntity
+
+
+### GET
+
+<a id="getUserEntity">首页用户信息</a>
+
+
+
+
+
+
+
+
+
+#### Request
+
+
+
+##### Parameters
+
+
+
+
+
+
+#### Response
+
+
+
+
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 200    | successful operation | <a href="#/definitions/用户-数据模型">用户-数据模型</a>|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## /user/add/form
+
+
+
+
+
+
+### POST
+
+
+<a id="addForm">添加用户信息</a>
+
+
+
+
+
+
+
+
+
+#### Request
+
+
+**Content-Type: ** multipart/form-data
+
+##### Parameters
+
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Located in</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Default</th>
+        <th>Schema</th>
+    </tr>
+
+
+
+<tr>
+    <th>body</th>
+    <td>body</td>
+    <td>no</td>
+    <td></td>
+    <td> - </td>
+
+    <td>
+    
+    <a href="#/definitions/添加用户请求参数">添加用户请求参数</a> 
+    </td>
+
+</tr>
+
+
+</table>
+
+
+
+#### Response
+
+
+
+
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 200    | successful operation | <a href="#/definitions/添加用户响应参数">添加用户响应参数</a>|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## /user/add/json
+
+
+
+
+
+
+### POST
+
+
+<a id="addJson">添加用户信息</a>
+
+
+
+
+
+
+
+
+
+#### Request
+
+
+
+##### Parameters
+
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Located in</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Default</th>
+        <th>Schema</th>
+    </tr>
+
+
+
+<tr>
+    <th>body</th>
+    <td>body</td>
+    <td>no</td>
+    <td></td>
+    <td> - </td>
+
+    <td>
+    
+    <a href="#/definitions/添加用户请求参数">添加用户请求参数</a> 
+    </td>
+
+</tr>
+
+
+</table>
+
+
+
+#### Response
+
+
+
+
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 200    | successful operation | <a href="#/definitions/添加用户响应参数">添加用户响应参数</a>|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## /user/add/urlform
+
+
+
+
+
+
+### POST
+
+
+<a id="addUrlForm">添加用户信息</a>
+
+
+
+
+
+
+
+
+
+#### Request
+
+
+**Content-Type: ** application/x-www-form-urlencoded
+
+##### Parameters
+
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Located in</th>
+        <th>Required</th>
+        <th>Description</th>
+        <th>Default</th>
+        <th>Schema</th>
+    </tr>
+
+
+
+<tr>
+    <th>body</th>
+    <td>body</td>
+    <td>no</td>
+    <td></td>
+    <td> - </td>
+
+    <td>
+    
+    <a href="#/definitions/添加用户请求参数">添加用户请求参数</a> 
+    </td>
+
+</tr>
+
+
+</table>
+
+
+
+#### Response
+
+
+
+
+| Status Code | Reason      | Response Model |
+|-------------|-------------|----------------|
+| 200    | successful operation | <a href="#/definitions/添加用户响应参数">添加用户响应参数</a>|
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Definitions
+
+## <a name="/definitions/添加用户响应参数">添加用户响应参数</a>
+
+<table border="1">
+    <tr>
+        <th>name</th>
+        <th>type</th>
+        <th>required</th>
+        <th>description</th>
+        <th>example</th>
+    </tr>
+    
+        <tr>
+            <td>userId</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>用户id</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>userName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>用户名</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>nickName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>用户昵称</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>realName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>真实姓名</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>realStatus</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>实名状态：0-未实名；1-已实名；</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>userMail</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>用户邮箱</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>loginPassword</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>登录密码</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>payPassword</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>支付密码</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userMobile</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>手机号码</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>inviteCode</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>邀请码</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>modifyTime</td>
+            <td>
+                
+                    
+                    string (date-time)
+                
+            </td>
+            <td>optional</td>
+            <td>修改时间</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userRegtime</td>
+            <td>
+                
+                    
+                    string (date-time)
+                
+            </td>
+            <td>optional</td>
+            <td>注册时间</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userRegip</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>注册IP</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userMemo</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>备注</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>sex</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>0男 1女</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>birthDate</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>生日</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>pic</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>头像图片路径</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>status</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>状态 1 正常 0 无效</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>score</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>积分</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>growth</td>
+            <td>
+                
+                    
+                    integer (int64)
+                
+            </td>
+            <td>optional</td>
+            <td>会员成长值</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>level</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>会员等级</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>levelType</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>等级条件 0 普通会员 1 付费会员</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>vipEndTime</td>
+            <td>
+                
+                    
+                    string (date-time)
+                
+            </td>
+            <td>optional</td>
+            <td>vip结束时间</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>levelName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>会员等级名称</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userTagEntityList</td>
+            <td>
+                
+                
+                    array[<a href="#/definitions/用户标签-数据模型">用户标签-数据模型</a>]
+                
+                
+                
+            </td>
+            <td>optional</td>
+            <td>用户标签</td>
+            <td></td>
+        </tr>
+    
+</table>
+
+## <a name="/definitions/添加用户请求参数">添加用户请求参数</a>
+
+<table border="1">
+    <tr>
+        <th>name</th>
+        <th>type</th>
+        <th>required</th>
+        <th>description</th>
+        <th>example</th>
+    </tr>
+    
+        <tr>
+            <td>userName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>required</td>
+            <td>用户名</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>nickName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>用户昵称</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userMobile</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>required</td>
+            <td>手机号码</td>
+            <td></td>
+        </tr>
+    
+</table>
+
+## <a name="/definitions/用户-数据模型">用户-数据模型</a>
+
+<table border="1">
+    <tr>
+        <th>name</th>
+        <th>type</th>
+        <th>required</th>
+        <th>description</th>
+        <th>example</th>
+    </tr>
+    
+        <tr>
+            <td>userId</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>用户id</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>userName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>用户名</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>nickName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>用户昵称</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>realName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>真实姓名</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>realStatus</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>实名状态：0-未实名；1-已实名；</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>userMail</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>用户邮箱</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>loginPassword</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>登录密码</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>payPassword</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>支付密码</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userMobile</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>手机号码</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>inviteCode</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>邀请码</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>modifyTime</td>
+            <td>
+                
+                    
+                    string (date-time)
+                
+            </td>
+            <td>optional</td>
+            <td>修改时间</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userRegtime</td>
+            <td>
+                
+                    
+                    string (date-time)
+                
+            </td>
+            <td>optional</td>
+            <td>注册时间</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userRegip</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>注册IP</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>userMemo</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>备注</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>sex</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>0男 1女</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>birthDate</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>生日</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>pic</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>头像图片路径</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>status</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>状态 1 正常 0 无效</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>score</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>积分</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>growth</td>
+            <td>
+                
+                    
+                    integer (int64)
+                
+            </td>
+            <td>optional</td>
+            <td>会员成长值</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>level</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>会员等级</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>levelType</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>等级条件 0 普通会员 1 付费会员</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>vipEndTime</td>
+            <td>
+                
+                    
+                    string (date-time)
+                
+            </td>
+            <td>optional</td>
+            <td>vip结束时间</td>
+            <td></td>
+        </tr>
+    
+        <tr>
+            <td>levelName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>会员等级名称</td>
+            <td></td>
+        </tr>
+    
+</table>
+
+## <a name="/definitions/用户标签-数据模型">用户标签-数据模型</a>
+
+<table border="1">
+    <tr>
+        <th>name</th>
+        <th>type</th>
+        <th>required</th>
+        <th>description</th>
+        <th>example</th>
+    </tr>
+    
+        <tr>
+            <td>tagId</td>
+            <td>
+                
+                    
+                    integer (int32)
+                
+            </td>
+            <td>optional</td>
+            <td>用户标签id</td>
+            <td>0</td>
+        </tr>
+    
+        <tr>
+            <td>tagName</td>
+            <td>
+                
+                    
+                    string
+                
+            </td>
+            <td>optional</td>
+            <td>标签名称</td>
+            <td></td>
+        </tr>
+    
+</table>
+
+</xmp>
+
+<script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
+</html>
