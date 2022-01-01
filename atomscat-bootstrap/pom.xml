@@ -89,12 +89,11 @@
             <artifactId>swagger-models</artifactId>
             <version>2.1.10</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.commonmark/commonmark -->
+        <!-- https://mvnrepository.com/artifact/org.pegdown/pegdown -->
         <dependency>
-            <groupId>org.commonmark</groupId>
-            <artifactId>commonmark</artifactId>
+            <groupId>org.pegdown</groupId>
+            <artifactId>pegdown</artifactId>
         </dependency>
-
 
     </dependencies>
 

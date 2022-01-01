@@ -85,15 +85,12 @@
                 <version>2.1.10</version>
             </dependency>
 
-
-            <!-- https://mvnrepository.com/artifact/org.commonmark/commonmark -->
+            <!-- https://mvnrepository.com/artifact/org.pegdown/pegdown -->
             <dependency>
-                <groupId>org.commonmark</groupId>
-                <artifactId>commonmark</artifactId>
-                <version>0.18.1</version>
+                <groupId>org.pegdown</groupId>
+                <artifactId>pegdown</artifactId>
+                <version>1.6.0</version>
             </dependency>
-
-
 
         </dependencies>
     </dependencyManagement>

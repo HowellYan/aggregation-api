@@ -24,5 +24,5 @@ public interface DirectoryListService {
     /**
      *
      */
-    void getOpenApi();
+    void getOpenApi(String[] ids);
 }

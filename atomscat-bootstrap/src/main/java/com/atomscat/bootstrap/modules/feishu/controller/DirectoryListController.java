@@ -51,13 +51,11 @@ public class DirectoryListController {
     @RequestMapping(value = "/getOpenApi", method = RequestMethod.GET)
     public String getOpenApi() {
         try {
-            directoryListService.getOpenApi();
+            String[] ids = {"6907569742384168962"};
+            directoryListService.getOpenApi(ids);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return "ok";
     }
-
-
-
 }

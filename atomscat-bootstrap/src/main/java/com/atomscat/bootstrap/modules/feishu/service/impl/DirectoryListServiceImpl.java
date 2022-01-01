@@ -14,14 +14,14 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.commonmark.node.Node;
-import org.commonmark.parser.Parser;
-import org.commonmark.renderer.html.HtmlRenderer;
+import org.pegdown.Extensions;
+import org.pegdown.PegDownProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -124,20 +124,20 @@ public class DirectoryListServiceImpl implements DirectoryListService {
     }
 
     @Override
-    public void getOpenApi() {
+    public void getOpenApi(String[] ids) {
         QueryWrapper queryWrapper = new QueryWrapper();
         List<DirectoryList> directoryListList = directoryListMapper.selectList(queryWrapper);
         for (DirectoryList directoryList : directoryListList) {
-            String docStr = directoryList.getDocumentDetail();
-            JSONObject jsonObject = JSONObject.parseObject(docStr);
-            if (jsonObject != null && jsonObject.get("code") != null && 0 == jsonObject.getInteger("code")) {
-                String content = jsonObject.getJSONObject("data").getJSONObject("document").getString("content");
-                Parser parser = Parser.builder().build();
-                Node document = parser.parse(content);
-                HtmlRenderer renderer = HtmlRenderer.builder().build();
-                log.info(renderer.render(document));
-            } else {
-                log.error("{}", JSONObject.toJSONString(directoryList));
+            if (ids.length == 0 || Arrays.stream(ids).anyMatch(s -> s.equals(directoryList.getId()))) {
+                String docStr = directoryList.getDocumentDetail();
+                JSONObject jsonObject = JSONObject.parseObject(docStr);
+                if (jsonObject != null && jsonObject.get("code") != null && 0 == jsonObject.getInteger("code")) {
+                    String content = jsonObject.getJSONObject("data").getJSONObject("document").getString("content");
+                    PegDownProcessor md = new PegDownProcessor(Extensions.ALL_WITH_OPTIONALS);
+                    log.info(md.markdownToHtml(content));
+                } else {
+                    log.error("{}", JSONObject.toJSONString(directoryList));
+                }
             }
         }
     }
