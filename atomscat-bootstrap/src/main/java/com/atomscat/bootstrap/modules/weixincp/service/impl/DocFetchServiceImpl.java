@@ -1,11 +1,19 @@
 package com.atomscat.bootstrap.modules.weixincp.service.impl;
 
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.RandomUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.atomscat.bootstrap.modules.weixincp.dao.mapper.DocFetchMapper;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocFetch;
 import com.atomscat.bootstrap.modules.weixincp.entity.DocId;
+import com.atomscat.bootstrap.modules.weixincp.entity.TreeDocFetch;
+import com.atomscat.bootstrap.modules.weixincp.entity.TreeRoot;
+import com.atomscat.bootstrap.modules.weixincp.repository.TreeDocFetchRepository;
 import com.atomscat.bootstrap.modules.weixincp.service.DocFetchService;
 import com.atomscat.bootstrap.modules.weixincp.service.OpenAPIService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -15,17 +23,22 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author th158
+ */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class DocFetchServiceImpl implements DocFetchService {
 
-    @Autowired
-    private DocFetchMapper docFetchMapper;
+    private final DocFetchMapper docFetchMapper;
 
-    @Autowired
-    private OpenAPIService openAPIService;
+    private final OpenAPIService openAPIService;
+
+    private final TreeDocFetchRepository treeDocFetchRepository;
 
     private static String[] ids = {"34656"};
 
@@ -87,6 +100,23 @@ public class DocFetchServiceImpl implements DocFetchService {
         } catch (Exception e) {
             log.error("{}", e);
             e.printStackTrace();
+        }
+    }
+
+    @Async
+    @Override
+    public void getDocFetchJsonByDocID(Long docID) {
+        String url = "https://developer.work.weixin.qq.com/docFetch/fetchCnt?id=" + docID + "&lang=zh_CN&ajax=1&f=json&random=" + RandomUtil.randomNumbers(5);
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(url).build();
+        String res = "";
+        try (Response response = client.newCall(request).execute()) {
+            res = Objects.requireNonNull(response.body()).string();
+            JSONObject jsonObject = JSON.parseObject(res);
+            TreeDocFetch treeDocFetch = JSONObject.parseObject(jsonObject.getString("data"), TreeDocFetch.class);
+            treeDocFetchRepository.saveAndFlush(treeDocFetch);
+        } catch (Exception e) {
+            log.error("{}", url);
         }
     }
 

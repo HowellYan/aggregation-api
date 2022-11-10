@@ -7,6 +7,9 @@ import javax.persistence.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author th158
+ */
 @Data
 @Entity
 @Table(name = "t_tree_origin")
@@ -48,4 +51,10 @@ public class TreeOrigin {
 
     @Transient
     private Map<String, TreeOrigin> children;
+
+    @Lob
+    @JSONField(name = "path")
+    private String pathJson;
+
+    private String href;
 }

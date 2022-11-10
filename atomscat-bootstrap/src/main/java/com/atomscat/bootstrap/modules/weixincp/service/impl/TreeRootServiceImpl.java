@@ -12,15 +12,22 @@ import com.atomscat.bootstrap.modules.weixincp.entity.TreeRoot;
 import com.atomscat.bootstrap.modules.weixincp.repository.TreeBannerCardConfRepository;
 import com.atomscat.bootstrap.modules.weixincp.repository.TreeOriginRepository;
 import com.atomscat.bootstrap.modules.weixincp.repository.TreeRootRepository;
+import com.atomscat.bootstrap.modules.weixincp.service.DocFetchService;
 import com.atomscat.bootstrap.modules.weixincp.service.TreeRootService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+
+import static cn.hutool.core.thread.ThreadUtil.sleep;
 
 /**
  * @author th158
@@ -35,6 +42,8 @@ public class TreeRootServiceImpl implements TreeRootService {
     private final TreeOriginRepository treeOriginRepository;
 
     private final TreeBannerCardConfRepository treeBannerCardConfRepository;
+
+    private final DocFetchService docFetchService;
 
     @Override
     public void getDocIndexByJson() {
@@ -67,7 +76,16 @@ public class TreeRootServiceImpl implements TreeRootService {
     }
 
     private void getNextNode(TreeOrigin treeOrigin) {
+        if (StrUtil.isNotBlank(treeOrigin.getPathJson())) {
+            try {
+                JSONObject jsonObject = JSON.parseObject(treeOrigin.getPathJson());
+                treeOrigin.setHref(jsonObject.getString("href"));
+            } catch (Exception e) {
+                log.error("", e);
+            }
+        }
         treeOriginRepository.saveAndFlush(treeOrigin);
+        // to next
         Map<String, TreeOrigin> treeOriginMap = treeOrigin.getChildren();
         if (treeOriginMap != null && treeOriginMap.size() > 0) {
             for (Map.Entry<String, TreeOrigin> treeOriginEntry : treeOriginMap.entrySet()) {
@@ -75,6 +93,21 @@ public class TreeRootServiceImpl implements TreeRootService {
                 children.setTreeOriginParent(treeOrigin);
                 getNextNode(children);
             }
+        }
+    }
+
+    @Async
+    @Override
+    public void getDocFetch(PageRequest pageable) {
+        Page<TreeOrigin> list = treeOriginRepository.findAll(pageable);
+        for (TreeOrigin treeOrigin : list.getContent()) {
+            if (treeOrigin.getType() == 1) {
+                docFetchService.getDocFetchJsonByDocID(treeOrigin.getDocId());
+            }
+        }
+        if (list.hasNext()) {
+            sleep(5000);
+            getDocFetch(pageable.next());
         }
     }
 }

@@ -9,4 +9,6 @@ public interface DocFetchService {
     String getOpenAPI();
 
     void update(Long id, Integer result);
+
+    void getDocFetchJsonByDocID(Long docID);
 }
