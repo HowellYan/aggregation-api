@@ -22,7 +22,7 @@ spring:
     #  数据库密码
     password: root
     type: com.alibaba.druid.pool.DruidDataSource
-    driverClassName: com.mysql.jdbc.Driver
+    driverClassName: com.mysql.cj.jdbc.Driver
     # Druid StatViewServlet配置
     druid:
       stat-view-servlet:
