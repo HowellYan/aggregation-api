@@ -47,16 +47,12 @@ spring:
     serialization:
       fail-on-empty-beans: false
 
-# Swagger界面内容配置
-swagger:
-  title: Data Center Service API接口文档
-  description: Data Center Service Api Documentation
-  version: 1.0.0
-  termsOfServiceUrl: http://127.0.0.1:8080
-  contact:
-    name: Howell.Yang
-    url: http://haihua.yang@izestchina.com
-    email: haihua.yang@izestchina.com
+# swagger-ui custom path
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
 
 # Mybatis-plus
 mybatis-plus:

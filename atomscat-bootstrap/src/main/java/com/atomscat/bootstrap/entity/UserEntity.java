@@ -1,5 +1,7 @@
 package com.atomscat.bootstrap.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -11,12 +13,14 @@ import java.util.Date;
  * @date 2021/6/11 22:42
  */
 @Data
+@Schema(description = "用户对象")
 public class UserEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
      * 用户id
      */
+    @Schema(description = "用户id")
     private Integer userId;
 
     /**
