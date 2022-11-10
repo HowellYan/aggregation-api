@@ -9,4 +9,6 @@ public interface TreeRootService {
     void getDocIndexByJson();
 
     void getDocFetch(PageRequest pageable);
+
+    void getDocFetch(Long docId);
 }

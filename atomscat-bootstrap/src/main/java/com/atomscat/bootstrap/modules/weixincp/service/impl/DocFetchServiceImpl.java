@@ -106,9 +106,10 @@ public class DocFetchServiceImpl implements DocFetchService {
     @Async
     @Override
     public void getDocFetchJsonByDocID(Long docID) {
+        String cookie = "RK=+1atPQyuFM; ptcz=f9b297500b047f2bcdcdac1ce4251a6d2f37466869147729a7954e44479574cb; pgv_pvid=1632910830918540; _ga=GA1.2.599786528.1632405590; o_cookie=1726474652; pac_uid=1_1726474652; ptui_loginuin=1726474652@qq.com; wwrtx.i18n_lan=zh; Hm_lvt_b9a29d420538f7c51b95531dd135a21b=1667960066,1667988180,1668062231; wwrtx.ref=direct; wwrtx.c_gdpr=0; wwrtx.refid=12843024562483366; Hm_lpvt_b9a29d420538f7c51b95531dd135a21b=1668087668; wwapidoc.sid=E389668E8AD7790DC3C6C2CF02C44B72B84C9DCE3E79362EE72174031DC92737BE93B54A735750176E0064A067026C6B4A3F03DF169AA28A9A2AC02DFF122507; wwapidoc.token_wt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IkNtd0tCZ2dDRUFFWUFoSWdQV1lvV3Q4QWp4eVhZem1McGJ0enh0WjFFMndIU2RselpxMm5NeStSNFdvYVFPZzdFanA3dTRYNVM2Y0tmWE5VNk41Q1BhSUVkaXVxdjJmb1Nacm5TZXM4L1hqeDZrcG5PempUNzZLYnFYS0sySU9YbDdrY3VKdnRNL2ZWV3lCajBwQWlJUW9mQ0pPS3Ewd1FsTjBER0lDQWdCQWlEM2QzYlc1bmMyVnpjMmx2Ym5OMmNnPT0iLCJpYXQiOjE2NjgwODc2ODQsImV4cCI6MTY2ODA4OTQ4NH0.uwUJ_U6-PV4L7GIJInZeKOEoBGQmwxnLwCRz0-NIyIE";
         String url = "https://developer.work.weixin.qq.com/docFetch/fetchCnt?id=" + docID + "&lang=zh_CN&ajax=1&f=json&random=" + RandomUtil.randomNumbers(5);
         OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(url).build();
+        Request request = new Request.Builder().url(url).addHeader("cookie", cookie).build();
         String res = "";
         try (Response response = client.newCall(request).execute()) {
             res = Objects.requireNonNull(response.body()).string();

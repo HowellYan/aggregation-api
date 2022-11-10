@@ -112,6 +112,13 @@
                 <version>1.6.0</version>
             </dependency>
 
+            <!-- https://mvnrepository.com/artifact/org.commonmark/commonmark -->
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark</artifactId>
+                <version>0.20.0</version>
+            </dependency>
+
             <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-ui -->
             <dependency>
                 <groupId>org.springdoc</groupId>

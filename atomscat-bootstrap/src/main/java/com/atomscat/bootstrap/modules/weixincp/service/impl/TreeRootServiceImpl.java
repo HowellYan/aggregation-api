@@ -110,4 +110,12 @@ public class TreeRootServiceImpl implements TreeRootService {
             getDocFetch(pageable.next());
         }
     }
+
+    @Async
+    @Override
+    public void getDocFetch(Long docId) {
+        docFetchService.getDocFetchJsonByDocID(docId);
+    }
+
+
 }
