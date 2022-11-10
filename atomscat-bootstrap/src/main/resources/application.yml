@@ -46,6 +46,10 @@ spring:
     time-zone: GMT+8
     serialization:
       fail-on-empty-beans: false
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
 
 # swagger-ui custom path
 springdoc:
