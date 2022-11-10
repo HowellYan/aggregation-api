@@ -9,6 +9,8 @@ import springfox.documentation.oas.annotations.EnableOpenApi;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger1.annotations.EnableSwagger;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
  * @author Howell
@@ -16,6 +18,8 @@ import springfox.documentation.spring.web.plugins.Docket;
  */
 @Configuration
 @EnableOpenApi
+@EnableSwagger
+@EnableSwagger2
 public class SwaggerConfig {
 
 
@@ -23,13 +27,14 @@ public class SwaggerConfig {
 
     @Bean
     public Docket createRestApi() {
-        return new Docket(DocumentationType.SWAGGER_2)
+        return new Docket(DocumentationType.SWAGGER_12)
                 .apiInfo(apiInfo())
                 .enable(swaggerEnable)
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.atomscat"))
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .enableUrlTemplating(true);
     }
 
     private ApiInfo apiInfo() {
